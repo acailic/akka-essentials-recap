@@ -67,7 +67,7 @@ object ActorsIntro extends App {
     def props(name: String) = Props(new Person(name))
   }
   //best practice
-  val person = actorSystem.actorOf(Person.props("bob"))
+  val coa = actorSystem.actorOf(Person.props("bob"))
 
 
 }
