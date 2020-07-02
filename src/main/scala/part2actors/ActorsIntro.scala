@@ -50,6 +50,7 @@ object ActorsIntro extends App {
 
   // instantiated class of actor ??? -- by using props with argument
 
+
   class Person(str: String) extends Actor{
     override def receive: Receive = {
       case "hi"=> println(s"Hi my name is $str")
@@ -57,7 +58,16 @@ object ActorsIntro extends App {
     }
   }
 
+  //discouraged
   val person = actorSystem.actorOf(Props(new Person("bob")))
   person ! "hi"
+
+  //advantage: factory method of props method
+  object  Person {
+    def props(name: String) = Props(new Person(name))
+  }
+  //best practice
+  val person = actorSystem.actorOf(Person.props("bob"))
+
 
 }
