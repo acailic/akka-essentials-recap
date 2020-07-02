@@ -70,4 +70,8 @@ object MultithreadingRecap extends App {
   } yield meaningOfLife + filteredMeaning
 
 
+  // andThen, recovery, recoverWith
+  // Promises
+
+
 }
