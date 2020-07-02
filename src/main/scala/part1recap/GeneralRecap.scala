@@ -2,7 +2,7 @@ package part1recap
 
 import scala.util.Try
 
-class GeneralRecap extends App {
+object GeneralRecap extends App {
 
   val aCondition: Boolean = false
 

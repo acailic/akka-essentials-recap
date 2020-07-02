@@ -2,7 +2,7 @@ package part1recap
 
 import scala.concurrent.Future
 
-class AdvancedRecap extends App {
+object AdvancedRecap extends App {
 
   // partial functions
   // works for some values , other throws an exception
@@ -41,11 +41,11 @@ class AdvancedRecap extends App {
   pfChain(123123) /// throw match error
 
   //type aliases
-  type ReceiveFunction = PartialFunction[Any, Int]
+  type ReceiveFunction = PartialFunction[Any, Unit]
 
   def receive: ReceiveFunction = {
     case 1 => println("hello")
-    case _ => println("confused")
+    case _ => println("confused.......")
   }
 
   // implicits
