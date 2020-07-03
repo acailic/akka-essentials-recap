@@ -25,8 +25,8 @@ object ChangingActorBehavior extends App {
     var state = Happy
 
     override def receive: Receive = {
-      case Food(vegetable) => state = Sad
-      case Food(chocolate) => state = Happy
+      case Food(VEGETABLE) => state = Sad
+      case Food(CHOCOLATE) => state = Happy
       case Ask(message) =>
         if (state == Happy) sender() ! KidAccept
         else sender() ! KidReject
@@ -35,26 +35,52 @@ object ChangingActorBehavior extends App {
 
   }
 
+  class StatelessFuzzyKid extends Actor {
+
+    import FussyKid._
+    import Mom._
+
+    override def receive: Receive = happyReceive
+
+    def happyReceive: Receive = {
+      case Food(VEGETABLE) => context.become(sadReceive)// change my receive handler
+      case Food(CHOCOLATE) =>
+      case Ask(_)=> sender() ! KidAccept
+    }
+
+    def sadReceive: Receive = {
+      case Food(VEGETABLE) =>
+      case Food(CHOCOLATE) => context.become(happyReceive)// change my receive handler
+      case Ask(_)=> sender() ! KidReject
+    }
+  }
+
+
   object Mom {
 
     case class Food(name: String)
+
     case class MomStart(kidRef: ActorRef)
 
     case class Ask(message: String) // message as do you want watter
-    val vegetable = "veggies"
-    val chocolate = "chocolate"
+    val VEGETABLE = "veggies"
+    val CHOCOLATE = "chocolate" // ??
+
+
   }
 
   class Mom extends Actor {
+
     import FussyKid._
     import Mom._
+
     override def receive: Receive = {
-      case  MomStart(kidRef)=>
-      //our interaction
-        kidRef ! Food(vegetable)
+      case MomStart(kidRef) =>
+        //our interaction
+        kidRef ! Food(VEGETABLE)
         kidRef ! Ask("do you want to play?")
-      case KidAccept=>println("my kidd is happy")
-      case KidReject=>println("my kidd is sad")
+      case KidAccept => println("my kidd is happy")
+      case KidReject => println("my kidd is sad")
 
     }
   }
@@ -62,9 +88,14 @@ object ChangingActorBehavior extends App {
 
   val system = ActorSystem("changingActorBehavior")
   val fussyKid = system.actorOf(Props[FussyKid])
+  val statelessFussyKid = system.actorOf(Props[StatelessFuzzyKid])
   val mom = system.actorOf(Props[Mom])
 
 
   mom ! MomStart(fussyKid)
+  mom ! MomStart(statelessFussyKid) // same like before
+  /// issue different kind of behavior on different state
+  // it should be no var in actor state -- bad idea
+
 
 }
