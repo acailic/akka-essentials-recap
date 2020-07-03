@@ -47,4 +47,27 @@ object ChildActors extends App {
   parent ! CreateChild("ivica")
   parent ! TellChild("desi sinovac")
 
+  //actor hierarchies
+  // parent-> child-> grandchild
+  //any level of hierarchies
+  /*
+   Guardian actors - top level actor
+   /system = system guardian
+   /user - user-level guardian     //demoActorSystem/user/parent/ivica : here is the message desi sinovac
+   /root = the root guardian  - guard previous one
+   */
+
+
+  /**
+    * Actor selection
+    */
+  var childrenSelection= system.actorSelection("/user/parent/child") // dead letters i no children
+  childrenSelection ! "i found you"
+
+  /**************************************************************
+  NEVER PASS MUTABLE ACTOR STATE OR THIS REFERENCE TO CHILD ACTORS
+  ************************************************************* */
+
+
+
 }
