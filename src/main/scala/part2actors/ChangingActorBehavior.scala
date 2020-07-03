@@ -43,14 +43,17 @@ object ChangingActorBehavior extends App {
     override def receive: Receive = happyReceive
 
     def happyReceive: Receive = {
-      case Food(VEGETABLE) => context.become(sadReceive)// change my receive handler
+      case Food(VEGETABLE) => context.become(sadReceive, false)// change my receive handler
+        // context.become(sadReceive, true)--erases old  or context.become(sadReceive, sad)-- saves old like a stack
+        //stack.push(sadReceive) it will call top most
       case Food(CHOCOLATE) =>
       case Ask(_)=> sender() ! KidAccept
     }
 
     def sadReceive: Receive = {
-      case Food(VEGETABLE) =>
-      case Food(CHOCOLATE) => context.become(happyReceive)// change my receive handler
+      case Food(VEGETABLE) => context.become(sadReceive, false)
+      case Food(CHOCOLATE) => context.unbecome() // unbecome is like pop out from stack
+      // change my receive handler context.become(happyReceive)
       case Ask(_)=> sender() ! KidReject
     }
   }
@@ -78,6 +81,9 @@ object ChangingActorBehavior extends App {
       case MomStart(kidRef) =>
         //our interaction
         kidRef ! Food(VEGETABLE)
+        kidRef ! Food(VEGETABLE)
+        kidRef ! Food(CHOCOLATE)
+        kidRef ! Food(CHOCOLATE)
         kidRef ! Ask("do you want to play?")
       case KidAccept => println("my kidd is happy")
       case KidReject => println("my kidd is sad")
