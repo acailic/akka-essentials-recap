@@ -61,7 +61,7 @@ object ChildActors extends App {
   /**
     * Actor selection
     */
-  var childrenSelection= system.actorSelection("/user/parent/child") // dead letters i no children
+  var childrenSelection= system.actorSelection("/user/parent/child") // dead letters if no children
   childrenSelection ! "i found you"
 
   /**************************************************************
