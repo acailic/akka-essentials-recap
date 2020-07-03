@@ -1,6 +1,7 @@
 package part2actors
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import part2actors.ChildActors.CreditCard.AttachToAccount
 
 object ChildActors extends App {
 
@@ -42,8 +43,9 @@ object ChildActors extends App {
 
 
   import Parent._
+
   val system = ActorSystem("demoActorSystem")
-  val parent = system.actorOf(Props[Parent],"parent")
+  val parent = system.actorOf(Props[Parent], "parent")
   parent ! CreateChild("ivica")
   parent ! TellChild("desi sinovac")
 
@@ -61,13 +63,56 @@ object ChildActors extends App {
   /**
     * Actor selection
     */
-  var childrenSelection= system.actorSelection("/user/parent/child") // dead letters if no children
+  var childrenSelection = system.actorSelection("/user/parent/child") // dead letters if no children
   childrenSelection ! "i found you"
 
-  /**************************************************************
-  NEVER PASS MUTABLE ACTOR STATE OR THIS REFERENCE TO CHILD ACTORS
-  ************************************************************* */
+  /** ************************************************************
+    * NEVER PASS MUTABLE ACTOR STATE OR THIS REFERENCE TO CHILD ACTORS
+    * ************************************************************ */
 
+  object NaiveBankAccount {
+
+    case class Deposit(amount: Int)
+
+    case class Withdraw(amount: Int)
+
+    case object InitializeAccount
+
+  }
+
+  class NaiveBankAccount extends Actor {
+
+    import NaiveBankAccount._
+
+    implicit CreditCard._
+
+    var amount = 0
+
+    override def receive: Receive = {
+      case InitializeAccount =>
+        val creditCardRef =  context.actorOf(Props[CreditCard])
+        creditCardRef ! AttachToAccount(this) /////!!!!!!!!!!!!!!
+      case Deposit(funds) => deposit(funds)
+      case Withdraw(funds) => withdraw(funds)
+
+    }
+
+    def deposit(funds:Int) = amount +=funds
+    def withdraw(funds: Int) = amount -=funds
+  }
+
+  object CreditCard {
+
+    case class AttachToAccount(bankAccount: NaiveBankAccount) /// !!!!!!!!
+    case object CheckStatus
+
+  }
+
+  class CreditCard extends Actor {
+    override def receive: Receive = {
+      
+    }
+  }
 
 
 }
