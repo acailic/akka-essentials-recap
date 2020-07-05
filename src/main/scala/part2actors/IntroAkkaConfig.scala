@@ -12,7 +12,7 @@ object IntroAkkaConfig extends App {
   }
 
   /*
-  Inline configuration
+    1. Inline configuration
    */
 
   val configString =
@@ -28,11 +28,18 @@ object IntroAkkaConfig extends App {
 
   actor ! "A message to remember"
 
+  /*
+    2. config file
+   */
 
 
   val defaultConfigFileSystem = ActorSystem("DefaultConfigurationDemo")
   val defaultConfigActor =  defaultConfigFileSystem.actorOf(Props[SimpleActorLogging])
   defaultConfigActor ! " remember me "
 
+
+  /*
+  3.  separate config in the same file
+ */
 
 }
