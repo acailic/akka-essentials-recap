@@ -1,6 +1,5 @@
 package part2actors
 
-import akka.actor.AbstractActor.Receive
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.event.Logging
 
