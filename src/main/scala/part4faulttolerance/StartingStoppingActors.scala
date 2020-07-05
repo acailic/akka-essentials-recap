@@ -1,6 +1,6 @@
 package part4faulttolerance
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Kill, PoisonPill, Props}
 
 object StartingStoppingActors extends App {
 
@@ -56,6 +56,22 @@ object StartingStoppingActors extends App {
   parent ! Stop
   for (_<- 1 to 10) parent ! " are you there ? "
   for (i<- 1 to 100) child ! s"[$i] second kid ? are you still alive ? "
+
+
+  /*
+   2. Method using special messages
+   */
+  val loseActor = system.actorOf(Props[Child])
+  loseActor ! " Hello lose actor"
+  loseActor ! PoisonPill // special message to kill, there is Kill message
+  loseActor ! "are you still there ?  "
+
+  val abruptlyTerminatedActor = system.actorOf(Props[Child])
+  abruptlyTerminatedActor  ! " you are going to be terminated"
+  abruptlyTerminatedActor  ! Kill // more brutal than poison pill, ActorKilledException throw
+  abruptlyTerminatedActor  ! "are you still there " // not executed
+
+
 
 
 }
