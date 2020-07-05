@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 
 object IntroAkkaConfig extends App {
 
-  class SimpleActorLogging extends Actor with ActorLogging{
+  class SimpleActorLogging extends Actor with ActorLogging {
     override def receive: Receive = {
       case message => log.info(message.toString)
     }
@@ -34,7 +34,7 @@ object IntroAkkaConfig extends App {
 
 
   val defaultConfigFileSystem = ActorSystem("DefaultConfigurationDemo")
-  val defaultConfigActor =  defaultConfigFileSystem.actorOf(Props[SimpleActorLogging])
+  val defaultConfigActor = defaultConfigFileSystem.actorOf(Props[SimpleActorLogging])
   defaultConfigActor ! " remember me "
 
 
@@ -42,7 +42,7 @@ object IntroAkkaConfig extends App {
   3.  separate config in the same file
  */
   val specialConfig = ConfigFactory.load().getConfig("mySpecialConfig")
-  val specialConfigFileSystem = ActorSystem("SpecialConfigurationDemo",specialConfig)
+  val specialConfigFileSystem = ActorSystem("SpecialConfigurationDemo", specialConfig)
   val specialConfigActor = specialConfigFileSystem.actorOf(Props[SimpleActorLogging])
   specialConfigActor ! " remember special me  "
 
@@ -50,4 +50,19 @@ object IntroAkkaConfig extends App {
   /*
 4.  separate config in the another file
 */
+
+  val separateConfig = ConfigFactory.load("secretFolder/secretConfig.conf")
+  println(s"separate config file level: ${separateConfig.getString("akka.logLevel")}")
+
+  /*
+  5.  different file format
+      JSON, properties
+*/
+  val separateConfigJsonFormat = ConfigFactory.load("json/jsonConfig.json")
+  println(s"separate config file level json : ${separateConfigJsonFormat.getString("aJsonProperty")}")
+
+
+
+  val separateConfigPropsFormat = ConfigFactory.load("props/propsConfig.properties")
+  println(s"separate config file level properties: ${separateConfigPropsFormat.getString("aJsonProperty")}")
 }
