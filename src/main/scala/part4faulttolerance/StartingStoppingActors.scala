@@ -24,7 +24,11 @@ object StartingStoppingActors extends App {
       case StopChild(name) =>
         log.info(s"Stopping child $name")
         val childOption= children.get(name)
-        childOption.foreach(childRef=> context.stop(childRef))
+        childOption.foreach(childRef=> context.stop(childRef)) //its   asynchronous
+      case Stop =>
+        log.info("Stopping myself")
+        context.stop(self) // waits until all children are stopped and then stop self
+      case message => log.info(message.toString)
     }
   }
 
@@ -34,11 +38,24 @@ object StartingStoppingActors extends App {
     }
   }
 
-
+/*
+   1. method by context.stop
+ */
   import Parent._
   val parent = system.actorOf(Props[Parent],"parent")
   parent ! StartChild("child1")
-  val child = system.actorSelection("/user/parent/child1")
+  val child = system.actorSelection("user/parent/child1")
   child ! "Hi kid"
+
+  //parent ! StopChild("child1")
+  //for (_<- 1 to 50) child ! " are you still therer ?    "
+
+  parent ! StartChild("child2")
+  val child2 = system.actorSelection("user/parent/child2")
+  child2 ! "hi second child"
+  parent ! Stop
+  for (_<- 1 to 10) parent ! " are you there ? "
+  for (i<- 1 to 100) child ! s"[$i] second kid ? are you still alive ? "
+
 
 }
