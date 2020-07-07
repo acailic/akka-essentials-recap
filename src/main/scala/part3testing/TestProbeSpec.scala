@@ -1,7 +1,7 @@
 package part3testing
 
-import akka.actor.{Actor, ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 
 class TestProbeSpec extends TestKit(ActorSystem("TestProbeSpec"))
@@ -11,6 +11,18 @@ class TestProbeSpec extends TestKit(ActorSystem("TestProbeSpec"))
 
   override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
+  }
+
+  import TestProbeSpec._
+
+  "A master actor" should {
+    "register in slave" in {
+      val master = system.actorOf(Props[Master])
+      val slave = TestProbe("slave")
+
+      master ! Register(slave.ref)
+      expectMsg(RegistrationTrack)
+    }
   }
 }
 
@@ -39,10 +51,14 @@ object TestProbeSpec {
 
   case class Report(number: Int)
 
+  case object RegistrationTrack
+
 
   class Master extends Actor {
     override def receive: Receive = {
-      case Register(slaveRef) => context.become(onLine(slaveRef, 0))
+      case Register(slaveRef) =>
+        sender ! RegistrationTrack
+        context.become(onLine(slaveRef, 0))
       case _ => ///ignore
 
     }
