@@ -24,6 +24,24 @@ class TestProbeSpec extends TestKit(ActorSystem("TestProbeSpec"))
       expectMsg(RegistrationTrack)
     }
   }
+  "Send work " should {
+    "register in slave" in {
+      val master = system.actorOf(Props[Master])
+      val slave = TestProbe("slave")
+
+      master ! Register(slave.ref)
+      expectMsg(RegistrationTrack)
+      val workLoadString = "protests in belgrade"
+      master ! Work(workLoadString)
+
+      //interation beetween master and slave
+      slave.expectMsg(SlaveWork(workLoadString, testActor))
+
+      slave.reply(WorkCompleted(3, testActor))
+
+      expectMsg(Report(3))  // testActor receives Report
+    }
+  }
 }
 
 
