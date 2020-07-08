@@ -39,7 +39,24 @@ class TestProbeSpec extends TestKit(ActorSystem("TestProbeSpec"))
 
       slave.reply(WorkCompleted(3, testActor))
 
-      expectMsg(Report(3))  // testActor receives Report
+      expectMsg(Report(3)) // testActor receives Report
+    }
+
+    "aggregate data correctly" in {
+      val master = system.actorOf(Props[Master])
+      val slave = TestProbe("slave")
+
+      master ! Register(slave.ref)
+      expectMsg(RegistrationTrack)
+
+      val workloadString = "hehehehehe"
+      master ! Work(workloadString)
+      master ! Work(workloadString)
+      slave.receiveWhile() {
+        case SlaveWork(`workloadString`, `testActor`) => slave.reply(WorkCompleted(3, testActor))
+      }
+      expectMsg(Report(3))
+      expectMsg(Report(6))
     }
   }
 }
