@@ -19,3 +19,14 @@ Processing message: a thread is scheduled (it will occupy actor) to run this act
 At some point the actor is unscheduled in which point actor is released, thread will move on.
 Guarantees: Only one thread per actor at any time. Effectively single threaded. No locks needed.
 Message delivery guarantee: At most once delivery. for any sender receiver pair, message order is maintained.
+
+## actor lifecycle
+1. actor instance
+  - has methods, internal state
+2. actor reference
+  - incarnation, actorOf, encapsuleted, mailbox, UUID, one actor instance
+3. actor paths
+  - may or may not have instance ActorRef inside
+  
+ - actors can be started, suspendend, resumed, restarted, stoppped.
+ 
