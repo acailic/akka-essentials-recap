@@ -66,6 +66,7 @@ object ActorLifecycle extends App {
   val supervisor = system.actorOf(Props[Parent], "supervisor")
   supervisor ! FailChild  // child
   supervisor ! CheckChild  // child
+  // default super vised strategy
 
 }
 
