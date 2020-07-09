@@ -1,6 +1,6 @@
 package part4faulttolerance
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, PoisonPill, Props}
 
 object ActorLifecycle extends App {
 
@@ -20,7 +20,7 @@ object ActorLifecycle extends App {
   val system = ActorSystem("demoActorSystem")
   val parent = system.actorOf(Props[LifecycleActor], "parent")
   parent ! StartChild
-  
+  parent ! PoisonPill
 
 }
 
