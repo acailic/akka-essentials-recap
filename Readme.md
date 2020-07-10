@@ -30,3 +30,7 @@ Message delivery guarantee: At most once delivery. for any sender receiver pair,
   
  - actors can be started, suspendend, resumed, restarted, stoppped.
  
+ 
+## actor supervision
+##
+ 
