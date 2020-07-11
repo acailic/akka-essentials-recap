@@ -63,10 +63,26 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
       val child = expectMsgType[ActorRef]
 
       watch(child)
-      child ! "123123213"
+      child ! 122
       val terminatedMessage= expectMsgType[Terminated]
       assert(terminatedMessage.actor==child)
 
+    }
+  }
+
+  "A kinder supervision " should {
+    "should not kill children in case is restarted" in {
+      val supervisor=system.actorOf(Props[NoDeathOnRestartSupervisor])
+      supervisor ! Props[FuzzyWordCount]
+      val child = expectMsgType[ActorRef]
+
+      watch(child)
+      child ! "opa opa opa "
+      child ! Report
+      expectMsg(3)
+      child ! 122
+      child ! Report
+      expectMsg(0)
     }
   }
 
@@ -89,6 +105,10 @@ object SupervisionSpec {
         sender() ! childRef
 
     }
+  }
+
+  class NoDeathOnRestartSupervisor extends Supervisor {
+    override def preRestart(reason: Throwable, message: Option[Any]): Unit = {}
   }
 
   case object Report
