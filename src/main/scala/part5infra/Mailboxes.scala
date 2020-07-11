@@ -1,12 +1,12 @@
 package part5infra
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, PoisonPill, Props}
-import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
-import com.typesafe.config.Config
+import akka.dispatch.{ControlMessage, PriorityGenerator, UnboundedPriorityMailbox}
+import com.typesafe.config.{Config, ConfigFactory}
 
 object Mailboxes extends App {
 
-  val system = ActorSystem("MailboxDemo")
+  val system = ActorSystem("MailboxDemo", ConfigFactory.load().getConfig("mailboxesDemo"))
 
   class SimpleActor extends Actor with ActorLogging {
     override def receive: Receive = {
@@ -45,6 +45,33 @@ object Mailboxes extends App {
     supportTicketLogger ! "[P0] solve it now"
     supportTicketLogger ! "[P1] do this when you have time"
 
+    // after which time can i send another message and be prioritized
+    // dont know when is thread is allocated and will handle and its not possible to configure
+    //
 
+  /*
+    case 2 control-aware mailbox
+    no limit aware mailbox
+  */
+
+  //step 1
+  // mark important messages as control messages
+  case object ManagementTicket extends ControlMessage
+
+  //step 2 -  configure who gets the mailbox
+  //  ma the actor attache the mailbox
+  val controlAwareActor = system.actorOf(Props[SimpleActor].withMailbox("control-mailbox"))
+
+/*  controlAwareActor ! "[P0] this needs to be solved now"
+  controlAwareActor ! "[P1] this will be solved now"
+  controlAwareActor ! ManagementTicket*/
+
+  //method #2 - using deployment config
+  val altControlAwareActor = system.actorOf(Props[SimpleActor],"altControlAwareActor")
+
+  controlAwareActor ! "[P0] this needs to be solved now"
+  controlAwareActor ! "[P1] this will be solved now"
+  controlAwareActor ! ManagementTicket
 
 }
+
