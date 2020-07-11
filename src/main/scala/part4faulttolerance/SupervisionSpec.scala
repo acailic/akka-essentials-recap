@@ -1,8 +1,8 @@
 package part4faulttolerance
 
 import akka.actor.SupervisorStrategy.{Escalate, Restart, Resume, Stop}
-import akka.actor.{Actor, ActorRef, ActorSystem, OneForOneStrategy, Props, Terminated}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.{Actor, ActorRef, ActorSystem, AllForOneStrategy, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
+import akka.testkit.{EventFilter, ImplicitSender, TestKit}
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 
 class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
@@ -12,9 +12,10 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
   }
 
   import SupervisionSpec._
+
   "A supervision " should {
     "a resume its child in case of minor error" in {
-      val supervisor=system.actorOf(Props[Supervisor])
+      val supervisor = system.actorOf(Props[Supervisor])
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
@@ -31,7 +32,7 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
 
   "A supervision " should {
     "restart child in case of empty sentence " in {
-      val supervisor=system.actorOf(Props[Supervisor])
+      val supervisor = system.actorOf(Props[Supervisor])
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
@@ -44,35 +45,35 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
 
   "A supervision " should {
     "terminate child in case of error" in {
-      val supervisor=system.actorOf(Props[Supervisor])
+      val supervisor = system.actorOf(Props[Supervisor])
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
       watch(child)
       child ! "akka is nice"
-      val terminatedMessage= expectMsgType[Terminated]
-      assert(terminatedMessage.actor==child)
+      val terminatedMessage = expectMsgType[Terminated]
+      assert(terminatedMessage.actor == child)
 
     }
   }
 
   "A supervision " should {
     "escalate on exception" in {
-      val supervisor=system.actorOf(Props[Supervisor])
+      val supervisor = system.actorOf(Props[Supervisor])
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
       watch(child)
       child ! 122
-      val terminatedMessage= expectMsgType[Terminated]
-      assert(terminatedMessage.actor==child)
+      val terminatedMessage = expectMsgType[Terminated]
+      assert(terminatedMessage.actor == child)
 
     }
   }
 
   "A kinder supervision " should {
     "should not kill children in case is restarted" in {
-      val supervisor=system.actorOf(Props[NoDeathOnRestartSupervisor])
+      val supervisor = system.actorOf(Props[NoDeathOnRestartSupervisor])
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
@@ -86,22 +87,47 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
     }
   }
 
+  "A an all for one supervisor" should {
+    "apply all for one strategy" in {
+      val supervisor = system.actorOf(Props[AllForOneStrategySupervisor], "AllForOneStrategySupervisor")
+      supervisor ! Props[FuzzyWordCount]
+      val child = expectMsgType[ActorRef]
+
+      supervisor ! Props[FuzzyWordCount]
+      val secondChild = expectMsgType[ActorRef]
+
+
+      secondChild ! "Opa opa opa"
+      secondChild ! Report
+      expectMsg(3)
+
+
+      EventFilter[NullPointerException]() intercept {
+        child ! ""
+      }
+
+      secondChild ! Report
+      expectMsg(0)
+    }
+  }
+
+
 }
 
 
 object SupervisionSpec {
 
   class Supervisor extends Actor {
-    override val supervisorStrategy = OneForOneStrategy() { //there is all for one strategy
+    override val supervisorStrategy: SupervisorStrategy = OneForOneStrategy() { //there is all for one strategy
       // OneForOneStrategy- just for actor that caused strategy
-      // all for one strategy - for all actors of children
+      // all for one strategy - for all actors of children, one child fails all children fails
       case _: NullPointerException => Restart
       case _: IllegalArgumentException => Stop
       case _: RuntimeException => Resume
       case _: Exception => Escalate
     }
 
-    override def receive: Receive ={
+    override def receive: Receive = {
       case props: Props =>
         val childRef = context.actorOf(props)
         sender() ! childRef
@@ -113,12 +139,24 @@ object SupervisionSpec {
     override def preRestart(reason: Throwable, message: Option[Any]): Unit = {}
   }
 
+  class AllForOneStrategySupervisor extends Supervisor {
+    override val supervisorStrategy = AllForOneStrategy() { //there is all for one strategy
+      // OneForOneStrategy- just for actor that caused strategy
+      // all for one strategy - for all actors of children
+      case _: NullPointerException => Restart
+      case _: IllegalArgumentException => Stop
+      case _: RuntimeException => Resume
+      case _: Exception => Escalate
+    }
+  }
+
   case object Report
+
   class FuzzyWordCount extends Actor {
     var words = 0
 
     override def receive: Receive = {
-      case Report=>  sender() ! words
+      case Report => sender() ! words
       case "" => throw new NullPointerException("sentences empty")
       case sentence: String =>
         if (sentence.length > 20) throw new RuntimeException("sentence is big")
