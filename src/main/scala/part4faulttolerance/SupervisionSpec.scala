@@ -77,8 +77,7 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
       supervisor ! Props[FuzzyWordCount]
       val child = expectMsgType[ActorRef]
 
-      watch(child)
-      child ! "opa opa opa "
+      child ! "Opa opa opa"
       child ! Report
       expectMsg(3)
       child ! 122
@@ -106,6 +105,7 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
         child ! ""
       }
 
+      Thread.sleep(500)
       secondChild ! Report
       expectMsg(0)
     }
