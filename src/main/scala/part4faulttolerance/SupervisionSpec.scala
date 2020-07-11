@@ -92,7 +92,9 @@ class SupervisionSpec extends TestKit(ActorSystem("SupervisionSpec"))
 object SupervisionSpec {
 
   class Supervisor extends Actor {
-    override val supervisorStrategy = OneForOneStrategy() {
+    override val supervisorStrategy = OneForOneStrategy() { //there is all for one strategy
+      // OneForOneStrategy- just for actor that caused strategy
+      // all for one strategy - for all actors of children
       case _: NullPointerException => Restart
       case _: IllegalArgumentException => Stop
       case _: RuntimeException => Resume
