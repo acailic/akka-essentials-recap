@@ -39,8 +39,10 @@ object Dispatchers extends App {
    */
 
   class DBActor extends Actor with ActorLogging {
-
+    // #1 solution
     implicit  val executionContext: ExecutionContext  = context.dispatcher
+    // #2 router
+
     override def receive: Receive = {
       case message => Future {  //bad practice
         // wait on resource
