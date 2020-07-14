@@ -50,6 +50,8 @@ object Routers extends App {
   }
 */
 
+  // method 2.2 from config routing
+
 
   val poolMaster = system.actorOf(RoundRobinPool(5).props(Props[Slave]), "simplePoolMaster")
   for(i <- 1 to 10){
