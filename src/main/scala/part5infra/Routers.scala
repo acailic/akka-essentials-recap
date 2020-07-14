@@ -1,7 +1,7 @@
 package part5infra
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Terminated}
-import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
+import akka.routing.{ActorRefRoutee, RoundRobinPool, RoundRobinRoutingLogic, Router}
 
 object Routers extends App {
 
@@ -43,10 +43,17 @@ object Routers extends App {
 
   val system = ActorSystem("ActorDemo")
   val master = system.actorOf(Props[Master])
+/*
 
   for(i <- 1 to 10){
     master !  s"[$i] Hi"
   }
+*/
 
+
+  val poolMaster = system.actorOf(RoundRobinPool(5).props(Props[Slave]), "simplePoolMaster")
+  for(i <- 1 to 10){
+    poolMaster !  s"[$i] Hi"
+  }
 
 }
