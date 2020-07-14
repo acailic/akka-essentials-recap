@@ -1,6 +1,6 @@
 package part5infra
 
-import akka.actor.{Actor, ActorLogging, Props, Terminated}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Terminated}
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 
 object Routers extends App {
@@ -10,8 +10,8 @@ object Routers extends App {
   class Master extends Actor {
     //step one create routes
     // 5 actor routes based off slaves actor
-    private val slaves = for (_ <- 1 to 5) yield {
-      val slave = context.actorOf(Props[Slave])
+    private val slaves = for (i <- 1 to 5) yield {
+      val slave = context.actorOf(Props[Slave],s"[$i] slave ")
       context.watch(slave)
       ActorRefRoutee(slave)
       // slave // TODO
@@ -40,5 +40,13 @@ object Routers extends App {
     }
 
   }
+
+  val system = ActorSystem("ActorDemo")
+  val master = system.actorOf(Props[Master])
+
+  for(i <- 1 to 10){
+    master !  s"[$i] Hi"
+  }
+
 
 }
