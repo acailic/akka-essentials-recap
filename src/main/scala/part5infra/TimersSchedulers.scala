@@ -28,4 +28,21 @@ object TimersSchedulers extends App {
     simpleActor ! "heartbeat"
   }
 
+  system.scheduler.scheduleOnce(5 seconds){
+    routine.cancel()
+  }
+
+  /// not use ref in sched
+  /// schedulers are not for months messages
+
+  /*
+  implement self closing actor
+  1-if actor receives one message, respond with another with one sec
+  2-if window expires, actor will stop
+  3-if send another mess, time windows is reset
+   */
+
+
+
+
 }
