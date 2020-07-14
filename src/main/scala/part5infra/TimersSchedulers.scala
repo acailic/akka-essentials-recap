@@ -1,6 +1,6 @@
 package part5infra
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Cancellable, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Cancellable, Props, Timers}
 
 import scala.concurrent.duration._
 
@@ -65,7 +65,7 @@ object TimersSchedulers extends App {
     }
   }
 
-  val selfClosingActor = system.actorOf(Props[SelfClosingActor])
+/*  val selfClosingActor = system.actorOf(Props[SelfClosingActor])
   system.scheduler.scheduleOnce(250 millis) {
     selfClosingActor ! "ping"
   }
@@ -73,9 +73,34 @@ object TimersSchedulers extends App {
   system.scheduler.scheduleOnce(2 seconds) {
     system.log.info("sending pong message")
     selfClosingActor ! "pong" //will never reach
+  }*/
+
+  case object TimerKey
+  case object Start
+  case object Stop
+  case object Reminder
+  class TimerBasedHeartbeatActor extends Actor with ActorLogging with Timers{
+    timers.startSingleTimer(TimerKey, Start, 500 millis )
+
+    override def receive: Receive = {
+      case Start =>
+        log.info("Bootstrapping")
+        timers.startPeriodicTimer(TimerKey, Reminder, 1 second)
+      case Reminder=>
+        log.info("im alive")
+      case Stop=>
+        log.warning("stop")
+        timers.cancel(TimerKey)
+        context.stop(self)
+    }
+
+
   }
 
-  class TimerBasedSCActor extends Actor with ActorLogging {
+  val timerBasedHeartbeatActor = system.actorOf(Props[TimerBasedHeartbeatActor], "timerActor")
+  system.scheduler.scheduleOnce(5 seconds){
+    timerBasedHeartbeatActor ! Stop
   }
+
 
 }
