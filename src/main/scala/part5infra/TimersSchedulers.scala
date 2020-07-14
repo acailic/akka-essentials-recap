@@ -2,17 +2,16 @@ package part5infra
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Cancellable, Props}
 import scala.concurrent.duration._
+
 object TimersSchedulers extends App {
 
   class SimpleActor extends Actor with ActorLogging {
     override def receive: Receive = {
       case message => log.info(message.toString)
     }
-
-
   }
 
-  val system = new ActorSystem("SchedulersTimeDemo")
+  val system =   ActorSystem("SchedulersTimeDemo")
   val simpleActor = system.actorOf(Props[SimpleActor])
 
   system.log.info("Schedulers reminder to simple actor")
@@ -25,11 +24,8 @@ object TimersSchedulers extends App {
   }
 
   // heartbeat
-  val routine ! Cancellable = system.scheduler.schedule(1 second, 2 second){
+  val routine: Cancellable = system.scheduler.schedule(1 second, 2 second){
     simpleActor ! "heartbeat"
   }
-
-
-
 
 }
